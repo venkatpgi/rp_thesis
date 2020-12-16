@@ -1,0 +1,5 @@
+"0","roc_snap_0_48 <- roc(snap$outcome_d14,snap$snap_0_48,smoothed=TRUE,ci=TRUE,ci.alpha=0.9,stratified=FALSE,plot=TRUE,auc.polygon=TRUE,max.auc.polygon=TRUE,grid=TRUE,print.auc=TRUE,show.thres=TRUE)"
+"2","Setting levels: control = 1, case = 0
+"
+"2","Setting direction: controls < cases
+"

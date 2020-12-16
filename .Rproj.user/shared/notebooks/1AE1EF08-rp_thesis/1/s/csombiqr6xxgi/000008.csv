@@ -1,0 +1,2 @@
+"0","coords(roc2, ""local maximas"", ret=c(""threshold"", ""sens"", ""spec"", ""ppv"", ""npv""))"
+"2","The 'transpose' argument to FALSE by default since pROC 1.16. Set transpose = TRUE explicitly to revert to the previous behavior, or transpose = TRUE to silence this warning. Type help(coords_transpose) for additional information."

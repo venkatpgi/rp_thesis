@@ -1,0 +1,8 @@
+"0","#create a new data set from snap and baseline_data datasets and convert that to a long data suitable for tidyanalysis and lmer analysis"
+"0","library(dplyr)"
+"0","snap_mixed <- snap %>% select(name,outcome_d14,snap_0,snap_24,snap_48,snap_72,snap_0_72,snap_0_48,snap_0_24) #select variables from snap data"
+"0","baseline_skimmed <- baseline_data %>% select(gest,bwt,wga,ag_5mt,resp,vent) #select variables from baseline_data"
+"0","snap_mixedmod <- data.frame(baseline_skimmed,snap_mixed) #combine them into a single data frame"
+"0","snap_mixedmod <- snap_mixedmod %>% select(name,outcome_d14,everything()) #reorder the columns"
+"0","snap_mixedmod_long <- snap_mixedmod %>% pivot_longer(cols=snap_0:snap_72,names_to=""snap_serial"",values_to=""score"")"
+"0","head(snap_mixedmod_long,6)"

@@ -1,0 +1,4 @@
+"0","#quadratic trends"
+"0","snap_mixedmod_long %>% ggplot(aes(snap_serial,score,group=outcome_d14))+"
+"0","  geom_smooth(method=lm,alpha=0.2,formula=y~x+I(x^2))"
+"0",""

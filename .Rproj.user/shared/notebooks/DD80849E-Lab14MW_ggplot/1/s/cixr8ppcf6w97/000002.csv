@@ -1,0 +1,10 @@
+"0","lab14mw_data <- read_sav(""/Users/Julian/GDrive/Misc/Classes/InterStats/Lab14M/Lab14MW_data.sav"") %>% "
+"0","  mutate(SubjID = row_number()) %>% "
+"0","  select(SubjID, everything()) %>% "
+"0","  mutate(language_lab = ifelse(language == 1, ""Excel"", NA),"
+"0","         language_lab = ifelse(language == 2, ""SPSS"", language_lab),"
+"0","         language_lab = ifelse(language == 3, ""R"", language_lab)) %>% "
+"0","  mutate(school_lab = ifelse(school == 1, ""School 1"", NA),"
+"0","         school_lab = ifelse(school == 2, ""School 2"", school_lab))"
+"2","Error: '/Users/Julian/GDrive/Misc/Classes/InterStats/Lab14M/Lab14MW_data.sav' does not exist.
+"

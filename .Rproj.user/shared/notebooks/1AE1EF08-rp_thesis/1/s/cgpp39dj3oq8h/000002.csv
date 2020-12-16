@@ -1,0 +1,5 @@
+"0","#group x time interaction"
+"0","snap_mixedmod_long %>% ggplot(aes(snap_serial,score,fill=outcome_d14,group=outcome_d14))+"
+"0","  stat_summary(fun.data = mean_se,geom=""ribbon"",alpha=0.2,color=""lightgrey"")+"
+"0","  stat_summary(fun.y=mean,geom=""line"")"
+"2","`fun.y` is deprecated. Use `fun` instead."

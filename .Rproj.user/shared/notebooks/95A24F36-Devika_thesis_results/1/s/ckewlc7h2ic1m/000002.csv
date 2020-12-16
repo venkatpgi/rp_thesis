@@ -1,0 +1,9 @@
+"0","getwd()"
+"1","[1]"
+"1"," ""/Users/venkatpgi/OneDrive/Documents/Research/thesis_dissertation/devika/docs"""
+"1","
+"
+"0","library(readr)"
+"0","data1 <- read_csv(""devika_final.csv"")"
+"2","Error: 'devika_final.csv' does not exist in current working directory ('/Users/venkatpgi/OneDrive/Documents/Research/thesis_dissertation/devika/docs').
+"

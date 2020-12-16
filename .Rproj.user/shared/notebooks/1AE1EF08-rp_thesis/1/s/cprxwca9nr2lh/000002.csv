@@ -1,0 +1,20 @@
+"0","#multiple ROC curves in a single plot - simple type with less arguments"
+"0","roc_list <- roc(outcome_d14~snap_0 + snap_0_24 + snap_0_48 + snap_0_72, data=snap)"
+"2","Setting levels: control = 1, case = 0
+"
+"2","Setting direction: controls > cases
+"
+"2","Setting levels: control = 1, case = 0
+"
+"2","Setting direction: controls < cases
+"
+"2","Setting levels: control = 1, case = 0
+"
+"2","Setting direction: controls < cases
+"
+"2","Setting levels: control = 1, case = 0
+"
+"2","Setting direction: controls < cases
+"
+"0","roc_multi1 <- ggroc(roc_list,aes = ""linetype"",color=""black"") + theme_minimal() + ggtitle(""ROC curve of SNAP and delta-SNAP and death by 14 days"") + geom_segment(aes(x=1,xend=0,y=0,yend=1),color=""darkgrey"",linetype=""dashed"") + xlab(""specificity"") +ylab(""sensitivity"")"
+"0","roc_multi1"

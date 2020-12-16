@@ -1,0 +1,6 @@
+"0","#groupXtimeXwga interaction"
+"0","snap_mixedmod_long %>% ggplot(aes(snap_serial,score,fill=outcome_d14,group=outcome_d14))+"
+"0","  geom_point() +"
+"0","  stat_summary(fun.data = mean_cl_boot,alpha=1,position=position_dodge(width=0.5)) + stat_summary(fun=mean,geom=""line"",position=position_dodge(width=0.5)) +"
+"0","  ggtitle(""Serial SNAP scores in mortality and no-mortality groups"") + "
+"0","  xlab(""Time from severe sepsis"")+ylab(""Mean (95% C.I) SNAP scores"")"

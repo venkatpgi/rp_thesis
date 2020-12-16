@@ -1,0 +1,6 @@
+"0","#observed few variable names are not expressed in R style and hence going to rename them"
+"0","library(dplyr)"
+"0","sepsis_data <- sepsis_data %>% rename(outcome_d14=outcome-d14)"
+"2","Error: object 'outcome' not found
+[90mRun `rlang::last_error()` to see where the error occurred.[39m
+"

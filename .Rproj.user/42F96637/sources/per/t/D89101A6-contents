@@ -1,0 +1,412 @@
+---
+title: "r_tips"
+author: "Venkat"
+date: "12/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+**I have created a small r_tips document to put together (not in a particular order) the new functions and codes which i learn in R**
+
+*To upgrade R without losing packages*
+
+**Before upgrade, build a temp file with all your old packages**
+
+```{r}
+tmp <- installed.packages()
+installedpkgs <- as.vector(tmp[is.na(tmp[, "Priority"]), 1])
+save(installedpkgs, file = "installed_old.rda")
+```
+
+**Install the new version of R; Once the new version is ready and running, reload the saved packages and re-install them from CRAN**
+
+```{r}
+tmp <- installed.packages()
+installedpkgs.new <- as.vector(tmp[is.na(tmp[,"Priority"]), 1])
+missing <- setdiff(installedpkgs, installedpkgs.new)
+install.packages(missing)
+update.packages()
+```
+
+**if you had packages from BioConductor, reload those as well**
+
+```{r}
+chooseBioCmirror()
+biocLite() 
+load("installed_old.rda")
+tmp <- installed.packages()
+installedpkgs.new <- as.vector(tmp[is.na(tmp[,"Priority"]), 1])
+missing <- setdiff(installedpkgs, installedpkgs.new)
+for (i in 1:length(missing)) biocLite(missing[i])
+```
+
+
+**To check for the available packages and their version**
+
+```{r}
+#method 1 (active packages)
+str(allPackage <- installed.packages(.Library, priority = "high"))
+allPackage [, c(1,3:5)]
+```
+```{r}
+#method2 (all packages with versions)
+ip <-  as.data.frame(installed.packages()[,c(1,3:4)])
+ip <-  ip[is.na(ip$Priority),1:2,drop=FALSE]
+ip
+```
+```{r}
+#method3 (loaded packages)
+sessionInfo()
+```
+```{r}
+#method4 (exactly same as method2)
+x <- installed.packages(); x[ is.na(x[,"Priority"]), c("Package", "Version")]
+```
+
+**To install older versions of a package**
+
+```{r}
+require(devtools)
+install_version("ggplot2", version = "0.9.1", repos = "http://cran.us.r-project.org")
+```
+
+```{r}
+packageurl <- "http://cran.r-project.org/src/contrib/Archive/ggplot2/ggplot2_0.9.1.tar.gz"
+install.packages(packageurl, repos=NULL, type="source")
+```
+
+```{r}
+#If you know the URL, you can also install from source via the command line outside of R. 
+#wget http://cran.r-project.org/src/contrib/Archive/ggplot2/ggplot2_0.9.1.tar.gz
+#R CMD INSTALL ggplot2_0.9.1.tar.gz
+```
+
+*To read a .csv file*
+
+```{r}
+read.csv ()#this is from the base R package; converts strings to factors (unwanted)
+readr::read_csv()#this is from the readr package within the tidyverse and faster than read.csv
+data.table::fread()#from the data.table package; arguably the fastest for large data files
+```
+
+*To dynamically install R packages*
+
+```{r}
+mypackages<-c("readxl", "dplyr", "multcomp") #for example, i have used these three packages and i want the other user or myself in other system wish that R has these three packages
+
+for (p in mypackages){
+  if(!require(p, character.only = TRUE)){
+    install.packages(p)
+    library(p, character.only = TRUE)
+  }
+  }
+```
+
+*To convert wide data to long data*
+
+```{r}
+#method 1
+library(tidyr)
+gather() #use gather function
+#data_long <- gather(df_data_wide,name_key_column,name_new_value_column,name_source_columns,factor_key=TRUE) #template for gather () function
+```
+```{r}
+olddata_wide <- read.table(header=TRUE, text='
+ subject sex control cond1 cond2
+       1   M     7.9  12.3  10.7
+       2   F     6.3  10.6  11.1
+       3   F     9.5  13.1  13.8
+       4   M    11.5  13.4  12.9
+')
+# Make sure the subject column is a factor
+olddata_wide$subject <- factor(olddata_wide$subject)
+
+# The arguments to gather():
+# - data: Data object
+# - key: Name of new key column (made from names of data columns)
+# - value: Name of new value column
+# - ...: Names of source columns that contain values
+# - factor_key: Treat the new key column as a factor (instead of character vector)
+
+data_long <- gather(olddata_wide, condition, measurement, control:cond2, factor_key=TRUE)
+
+# source columns are specified with control:cond2. This means to use all columns positionally between control and cond2.
+#other notations in tidyr:
+#add source columns individually
+data_long <- gather(olddata_wide,condition,measurement,control,cond1,cond2,factor_key = TRUE)
+data_long
+#indicate the columns to be retained and not split/reshaped
+data_long <- gather(olddata_wide,condition,measurement,-subject,-sex)
+data_long
+
+# Sort by subject first, then by condition; this is a very comvenient step
+data_long <- data_long[order(data_long$subject, data_long$condition), ]
+data_long
+```
+```{r}
+#method2
+library(reshape2)
+#use melt() function
+data_long <- melt(olddata_wide,id.vars = c("subject","sex"),measure.vars = c("control","cond1","cond2"),variable.name = "condition",value.name = "measurement")
+data_long <- data_long[order(data_long$subject,data_long$sex),]
+data_long
+```
+```{r}
+#method3 - exactly same melt function but from data.table package
+library(data.table)
+data_long <- melt(olddata_wide,id.vars = c("subject","sex"),measure.vars = c("control","cond1","cond2"),variable.name = "condition",value.name = "measurement")
+data_long
+```
+
+*To convert long to wide data*
+
+```{r}
+#method 1 using tidyr
+data_long
+#>    subject sex condition measurement
+#> 1        1   M   control         7.9
+#> 2        1   M     cond1        12.3
+#> 3        1   M     cond2        10.7
+#> 4        2   F   control         6.3
+#> 5        2   F     cond1        10.6
+#> 6        2   F     cond2        11.1
+#> 7        3   F   control         9.5
+#> 8        3   F     cond1        13.1
+#> 9        3   F     cond2        13.8
+#> 10       4   M   control        11.5
+#> 11       4   M     cond1        13.4
+#> 12       4   M     cond2        12.9
+
+library(tidyr)
+
+# The arguments to spread():
+# - data: Data object
+# - key: Name of column containing the new column names
+# - value: Name of column containing values
+data_wide <- spread(data_long, condition, measurement)
+data_wide
+# Reorder the columns
+data_wide <- data_wide[, c(1,2,5,4,3)]
+data_wide
+```
+
+```{r}
+#method 2 using reshape2
+# From the source:
+# "subject" and "sex" are columns we want to keep the same
+# "condition" is the column that contains the names of the new column to put things in
+# "measurement" holds the measurements
+library(reshape2)
+
+data_wide <- dcast(data_long, subject + sex ~ condition, value.var="measurement")
+data_wide
+```
+
+*To rename a column heading (variable)*
+[link](https://dplyr.tidyverse.org/reference/rename.html)
+
+```{r}
+#to rename a single variable using dplyr package of tidyverse
+library(dplyr)
+iris # as an example data
+dplyr::rename(iris,petal_length=Petal.Length)
+#arguments for rename() function is (.data,new_name=old_name)
+rename_with(iris,toupper) #changes all variable names to upper case
+rename_with(iris,tolower) #changes all variable names to lower case
+#arguments for rename_with() are (.data,.fn,.cols=everything(),...)
+rename_with(iris,toupper,starts_with("Petal"))
+rename_with(iris,toupper,ends_with("Length"))
+```
+
+```{r}
+library(gdata)
+iris1 <- rename.vars(iris,from="Sepal.Width",to="sepal_width")
+#template: df <-  rename.vars(df,from="old_name",to="new_name")
+#template: df <- rename.vars(df,from=c("old1","old2","old3"),to=c("new1","new2","new3"))
+```
+
+*To change the order of levels of a factor variable*
+
+```{r}
+outcome_data <- c("died","died","survived","survived","died","survived") #create a vector of character variables indicating outcome status of six individuals and assign that to an object
+outcome_data <- forcats::as_factor(outcome_data) #convert the character object type to factor
+outcome_data <- forcats::fct_relevel(outcome_data, "survived", "died")
+outcome_data #relevel() function has changed the default value labels of died as 1 and survived as 2 to survived as 1 and died as 2
+```
+
+*To change the codes of the levels in a factor variable*
+
+```{r}
+#code of levels in outcome_data variable needs recoding
+#recoding using revalue() function of plyr() package
+library(plyr)
+outcome_data <- revalue(outcome_data,c("1"="died","0"="survived"))
+outcome_data
+```
+
+**Tidyverse tips**
+
+*The select_if function belongs to dply and is very useful where we want to choose some columns based on some conditions. We can also add a function that applies to column names.*
+
+*Example: Let’s say that I want to choose only the numeric variables and to add the prefix “numeric_” to their column names.*
+
+```{r}
+library(tidyverse)
+
+iris%>%select_if(is.numeric,  list(~ paste0("numeric_", .)))%>%head()
+```
+Notice that we can also use the rename_if in the same way. An important note is that the rename_if(), rename_at(), and rename_all() have been superseded by rename_with(). The matching select statements have been superseded by the combination of a select() + rename_with().
+
+These functions were superseded because mutate_if() and friends were superseded by across(). select_if() and rename_if() already use tidy selection so they can’t be replaced by across() and instead we need a new function.
+
+*In many Data Science projects, we want one particular column (usually the dependent variable y) to appear first or last in the dataset. We can achieve this using the everything() from dplyr package.*
+
+*Example: Let’s say that I want the column Species to appear first in my dataset.*
+
+```{r}
+mydataset<-iris%>%select(Species, everything())
+mydataset%>%head()
+```
+*Example: Let’s say that I want the column Species to appear last in my dataset.*
+
+This is a little bit tricky. Have a look below at how we can do it. We will work with the mydataset where the Species column appears first and we will remove it to the last column.
+
+```{r}
+mydataset%>%select(-Species, everything())%>%head()
+```
+
+*relocate*
+
+*The relocate() is a new addition in dplyr 1.0.0. You can specify exactly where to put the columns with .before or .after*
+
+*Example: Let’s say that I want the Petal.Width column to appear next to Sepal.Width*
+
+```{r}
+iris%>%relocate(Petal.Width, .after=Sepal.Width)%>%head()
+```
+
+*Example: Let’s say that I want the Petal.Width to be the last column*
+
+```{r}
+iris%>%relocate(Petal.Width, .after=last_col())%>%head()
+```
+
+*When we work with data frames and we select a single column, sometimes we want the output to be as.vector. We can achieve this with the pull() which is part of dplyr.*
+
+*Example: Let’s say that I want to run a t.test in the Sepal.Length for setosa versus virginica. Note the the t.test function expects numeric vectors.*
+
+```{r}
+setosa_sepal_length<-iris%>%filter(Species=='setosa')%>%select(Sepal.Length)%>%pull()
+virginica_sepal_length<-iris%>%filter(Species=='virginica')%>%select(Sepal.Length)%>%pull()
+
+t.test(setosa_sepal_length,virginica_sepal_length)
+```
+
+*When you work with ggplot2 sometimes is frustrating when you have to reorder the factors based on some conditions. Let’s say that we want to show the boxplot of the Sepal.Width by Species.*
+
+*Example: Let’s assume that we want to reorder the boxplot based on the Species’ median.*
+
+*We can do that easily with the reorder() from the stats package.*
+
+```{r}
+iris%>%ggplot(aes(x=Species, y=Sepal.Width))+geom_boxplot() #original code
+iris%>%ggplot(aes(x=reorder(Species,Sepal.Width, FUN = median), y=Sepal.Width))+geom_boxplot()+xlab("Species") #reordered code
+```
+
+*EDA*
+
+```{r}
+library(funModeling)
+library(tidyverse)
+library(Hmisc)
+#run basic EDA
+basic_eda <- function(data)
+{
+  glimpse(data)
+  print(status(data))
+  freq(data) 
+  print(profiling_num(data))
+  plot_num(data)
+  describe(data)
+} #function with code block for basic EDA
+#replace 'data' with your 'df'
+#Step 1
+glimpse(data)
+status(data) #p_na <0.2 - at least 80% of non-NA; unique<=50 - less than 50 unique values
+#Step 2
+#analyze categorical variables
+freq(data) #runs all categorical or factor variables automatically
+#if one variable, returns a table
+#export to .jpeg
+freq(data,path_out=".")
+#step 3
+#analyze numerical variables
+plot_num(data)
+profiling_num(data)
+#both runs numerical variables automatically
+#export to .jpeg
+plot_num(data,path_out = ".")
+#step 4
+#analyzing numerical and categorical same time
+Hmisc::describe(data)
+#good for a quick picture; not as operative as freq() and profiling_num()
+```
+
+*Another EDA - preprocessing data pipeline*
+
+```{r}
+# Core Packages
+library(tidyverse)
+library(tidyquant)
+library(recipes)
+library(rsample)
+library(knitr)
+
+# Data Cleaning
+library(janitor)
+
+# EDA
+library(skimr)
+library(DataExplorer)
+
+# ggplot2 Helpers
+library(scales)
+theme_set(theme_tq())
+```
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2020, week = 28)
+coffee_ratings_tbl <- tuesdata$coffee_ratings
+```
+
+```{r}
+coffee_ratings_preprocessed_tbl <- coffee_ratings_tbl 
+coffee_ratings_preprocessed_tbl %>% glimpse()
+#Many of these are obviously unnecessary and so let’s get to work reducing these down to something more meaningful.We can begin by removing a few columns and so lets add that step to our preprocessing.
+coffee_ratings_preprocessed_tbl <- coffee_ratings_tbl %>% 
+  
+    # remove columns
+    select(-contains("certification"), -in_country_partner)
+```
+
+```{r}
+#Integrating {DataExplorer} into our EDA process creates a work-flow that quickly assesses:
+#Summary statistics: skimr::skim()
+#Missing data: plot_missing()
+#Categorical data: plot_bar()
+#Numerical data: plot_histogram
+coffee_ratings_preprocessed_tbl %>% skimr::skim()
+coffee_ratings_preprocessed_tbl %>% 
+  plot_missing(ggtheme = theme_tq())
+coffee_ratings_preprocessed_tbl %>% 
+    plot_bar(ggtheme = theme_tq(), ncol = 2, nrow = 4)
+coffee_ratings_preprocessed_tbl %>% 
+    plot_histogram(ggtheme = theme_tq(), nrow = 5, ncol = 4)
+#New Insights - Many features look normally distributed, Skewed features may need transformations (depending on modeling approach), We can probably keep mean altitude and drop the low and high versions, Quakers (unripened beans) should probably be categorical
+```
+
+

@@ -1,0 +1,8 @@
+"0","#step 3"
+"0","#analyze numerical variables"
+"0","plot_num(data)"
+"2","Error: At least one layer must contain all faceting variables: `variable`.
+* Plot is missing `variable`
+* Layer 1 is missing `variable`
+[90mRun `rlang::last_error()` to see where the error occurred.[39m
+"

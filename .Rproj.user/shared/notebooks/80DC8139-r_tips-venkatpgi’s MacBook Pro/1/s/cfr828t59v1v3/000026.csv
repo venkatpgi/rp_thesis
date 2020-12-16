@@ -1,0 +1,3 @@
+"0","#to rename a single variable using dplyr package of tidyverse"
+"0","library(dplyr)"
+"0","iris # as an example data"

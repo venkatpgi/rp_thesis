@@ -1,0 +1,8 @@
+"0","library(ROCit)"
+"0","roc7_empirical <- rocit(score=snap$snap_0,class=snap$outcome_d14)"
+"0","class(roc7_empirical)"
+"1","[1]"
+"1"," ""rocit"""
+"1","
+"
+"0","summary(roc7_empirical)"

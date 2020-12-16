@@ -1,0 +1,4 @@
+"0","#another long data set without the missing data"
+"0","snap_long_na_rm <- snap %>% gather(snap_rm,snap_value,snap_0:snap_72,factor_key=TRUE,na.rm=TRUE)"
+"0","snap_long_na_rm <- snap_long_na_rm[order(snap_long_na_rm$name,snap_long_na_rm$snap_rm),]"
+"0","snap_long_na_rm"

@@ -1,0 +1,1 @@
+"0","#within ggplot argument, add group=1; for line graphs, the data points must be grouped so that it knows which points to connect. As all points should be connected, say group=1"

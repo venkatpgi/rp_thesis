@@ -1,0 +1,152 @@
+---
+title: "rp_thesis"
+author: "Venkat"
+date: "19/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(readr)
+library(here)
+library(plyr)
+library(tidyverse)
+snap <- readr::read_csv("../data/snap_data.csv")
+sepsis_data <- readr::read_csv("../data/sepsis_data.csv")
+baseline_data <- readr::read_csv("../data/baseline_data.csv")
+```
+```{r}
+#convert the wide data of snap to long data snap to make the data tidy data using the gather function of tidyverse::tidyr package
+library(tidyr)
+snap_long <- snap %>% gather(snap_rm,snap_value,snap_0:snap_72,factor_key=TRUE)
+snap_long <- snap_long[order(snap_long$name,snap_long$snap_rm),]
+snap_long
+```
+```{r}
+#another long data set without the missing data
+snap_long_na_rm <- snap %>% gather(snap_rm,snap_value,snap_0:snap_72,factor_key=TRUE,na.rm=TRUE)
+snap_long_na_rm <- snap_long_na_rm[order(snap_long_na_rm$name,snap_long_na_rm$snap_rm),]
+snap_long_na_rm
+```
+
+```{r}
+library(dplyr)
+colnames(sepsis_data)
+for(i in colnames(sepsis_data)){
+  print(paste(i,"",typeof(sepsis_data[[i]])))
+}
+```
+```{r}
+dbl_names_sepsis <- sepsis_data %>% select_if(is.double) %>% colnames()
+dbl_names_sepsis
+dbl_to_fact_names_sepsis <- c("outcome_d14","sepsis_type","lethargy","asp","temp","resp_dist","apnea","seiz","shock","sclerema","bleed","abd_dist","met_acid","tachy","cult_pos","org_type","sepsis_screen","cxr_abn","cvs_involv","cvs_instab","cvs_support","met_acid_refr","rs_involv","hypox","hypercapnia","coag_abn","neutro_low")
+sepsis_data[,dbl_to_fact_names_sepsis] <- lapply(sepsis_data[,dbl_to_fact_names_sepsis],factor)
+
+for(i in colnames(sepsis_data)){
+print(paste(i,"",class(sepsis_data[[i]])))
+} #to check the change of selected doubles to factors (looped through columns)
+```
+
+```{r}
+dbl_names_snap <- snap %>% select_if(is.double) %>% colnames()
+dbl_names_snap
+dbl_to_fact_names_snap <- c("outcome_d14","seiz_0","seiz_24","seiz_48","seiz_72","od_enrol","od_d7","cvs_enrol","cvs_d7","rs_enrol","rs_d7","hemat_enrol","hemat_d7","renal_enrol","renal_d7","hepat_enrol","hepat_d7","cvs_d14","rs_d14","hemat_d14","renal_d14","hepat_d14")
+snap[,dbl_to_fact_names_snap] <- lapply(snap[,dbl_to_fact_names_snap],factor)
+
+for(i in colnames(snap)){
+print(paste(i,"",class(snap[[i]])))
+} #to check the change of selected doubles to factors (looped through columns)
+```
+
+```{r}
+dbl_names_baseline <- baseline_data %>% select_if(is.double) %>% colnames()
+dbl_names_baseline
+dbl_to_fact_names_baseline <- c("outcome_d14","outcome_d7","comp_outcome_d7","od_d7","outcome_d14_1","comp_outcome_d14","od_d14","outcome_final","gender","concep","booked","supvd","mat_drug","mat_ht","mat_dm","mat_pih","mat_gdm","mat_hd","lpv","ans","chorio","ipa","gest_categ","bwt_categ","mod","wga","birth_trauma","resp","surf","vent","oxygen","pda","chd","ivh","meningitis")
+baseline_data[,dbl_to_fact_names_baseline] <- lapply(baseline_data[,dbl_to_fact_names_baseline],factor)
+
+for(i in colnames(baseline_data)){
+print(paste(i,"",class(baseline_data[[i]])))
+} #to check the change of selected doubles to factors (looped through columns)
+```
+
+```{r}
+#have to recode outcome_d14 variable in snap data
+library(plyr)
+snap$outcome_d14 <- revalue(snap$outcome_d14,c("0"="died","1"="survived"))
+snap$outcome_d14 <- revalue(snap$outcome_d14,c("died"="1","survived"="0"))
+table(snap$outcome_d14)
+```
+
+```{r}
+library(pROC)
+roc1 <- roc(snap$outcome_d14, snap$snap_0, percent=TRUE,
+            # arguments for auc
+            partial.auc=c(100, 90), partial.auc.correct=TRUE,
+            partial.auc.focus="sens",
+            # arguments for ci
+            ci=TRUE, boot.n=100, ci.alpha=0.9, stratified=FALSE,
+            # arguments for plot
+            plot=TRUE, auc.polygon=TRUE, max.auc.polygon=TRUE, grid=TRUE,
+            print.auc=TRUE, show.thres=TRUE)
+# Add to an existing plot. Beware of 'percent' specification!
+    roc2 <- roc(snap$outcome_d14,snap$snap_0_72,
+            plot=TRUE, add=TRUE, percent=roc1$percent)
+#coordinates of the curve
+    coords(roc1, "best", ret=c("threshold", "specificity", "1-npv"))
+coords(roc2, "local maximas", ret=c("threshold", "sens", "spec", "ppv", "npv"))
+#confidence intervals
+# Of the AUC
+ci(roc2)
+
+# Of the curve
+sens.ci <- ci.se(roc1, specificities=seq(0, 100, 5))
+plot(sens.ci, type="shape", col="lightblue")
+plot(sens.ci, type="bars")
+
+# need to re-add roc2 over the shape
+plot(roc2, add=TRUE)
+
+# CI of thresholds
+plot(ci.thresholds(roc2))
+
+#comparisons
+# Test on the whole AUC
+    roc.test(roc1, roc2, reuse.auc=FALSE)
+
+    # Test on a portion of the whole AUC
+    roc.test(roc1, roc2, reuse.auc=FALSE, partial.auc=c(100, 90),
+             partial.auc.focus="se", partial.auc.correct=TRUE)
+
+    # With modified bootstrap parameters
+    roc.test(roc1, roc2, reuse.auc=FALSE, partial.auc=c(100, 90),
+             partial.auc.correct=TRUE, boot.n=1000, boot.stratified=FALSE)
+```
+
+```{r}
+#create a new data set from snap and baseline_data datasets and convert that to a long data suitable for tidyanalysis and lmer analysis
+library(dplyr)
+snap_mixed <- snap %>% select(name,outcome_d14,snap_0,snap_24,snap_48,snap_72,snap_0_72,snap_0_48,snap_0_24) #select variables from snap data
+baseline_skimmed <- baseline_data %>% select(gest,bwt,wga,ag_5mt,resp,vent) #select variables from baseline_data
+snap_mixedmod <- data.frame(baseline_skimmed,snap_mixed) #combine them into a single data frame
+snap_mixedmod <- snap_mixedmod %>% select(name,outcome_d14,everything()) #reorder the columns
+snap_mixedmod_long <- snap_mixedmod %>% pivot_longer(cols=snap_0:snap_72,names_to="snap_serial",values_to="score")
+head(snap_mixedmod_long,6)
+```
+```{r}
+score <- snap_mixedmod_long$score
+group <- snap_mixedmod_long$group
+snap_serial <- snap_mixedmod_long$snap_serial
+subject <- snap_mixedmod_long$subject
+library(lme4)
+snap_m1 <- lmer(score~snap_serial*group + (1|subject),contrasts=list(snap_serial="contr.sum", group="contr.sum"))
+summary(snap_m1)
+Anova(snap_m1,test="F",type="III")
+library(apaTables)
+apa.2way.table(group,snap_serial,score,data=snap_mixedmod_long,show.marginal.means = T)
+```
+```{r}
+xyplot(score ~ snap_serial | group, data = snap_mixedmod_long, groups = group, type = "o", panel = panel.superpose)
+```
+

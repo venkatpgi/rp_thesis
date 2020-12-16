@@ -1,0 +1,4 @@
+"0","#linear trends"
+"0","snap_mixedmod_long %>% ggplot(aes(snap_serial,score,fill=outcome_d14,group=outcome_d14))+"
+"0","  #facet_wrap(~wga) +"
+"0","  geom_smooth(method = lm,alpha=0.2)"

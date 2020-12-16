@@ -1,0 +1,7 @@
+"0","# Add to an existing plot. Beware of 'percent' specification!"
+"0","    roc2 <- roc(snap$outcome_d14,snap$snap_0_72,"
+"0","            plot=TRUE, add=TRUE, percent=roc1$percent)"
+"2","Setting levels: control = 0, case = 1
+"
+"2","Setting direction: controls < cases
+"

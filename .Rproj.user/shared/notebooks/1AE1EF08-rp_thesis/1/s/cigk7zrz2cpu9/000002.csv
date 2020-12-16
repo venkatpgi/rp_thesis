@@ -1,0 +1,5 @@
+"0","#violin plot for distribution of snap score over time"
+"0","snap_mixedmod_long %>% mutate(snap_serial=factor(snap_serial)) %>% ggplot(aes(snap_serial,score))+"
+"0","  geom_violin()+"
+"0","  geom_jitter(alpha=0.5,width=0.1,height=0)"
+"0",""

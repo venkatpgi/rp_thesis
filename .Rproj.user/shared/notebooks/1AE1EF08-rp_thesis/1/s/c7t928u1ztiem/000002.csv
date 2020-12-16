@@ -1,0 +1,6 @@
+"0","#main effect of time"
+"0","snap_mixedmod_long %>% "
+"0","  ggplot(aes(snap_serial,score,group=1))+"
+"0","  stat_summary(fun.data = mean_cl_boot,geom=""ribbon"",alpha=0.3)+"
+"0","  stat_summary(fun.y=mean,geom=""line"")"
+"2","`fun.y` is deprecated. Use `fun` instead."

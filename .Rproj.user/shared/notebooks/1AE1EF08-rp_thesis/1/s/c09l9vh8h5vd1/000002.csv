@@ -1,0 +1,5 @@
+"0","#convert the wide data of snap to long data snap to make the data tidy data using the gather function of tidyverse::tidyr package"
+"0","library(tidyr)"
+"0","snap_long <- snap %>% gather(snap_rm,snap_value,snap_0:snap_72,factor_key=TRUE)"
+"0","snap_long <- snap_long[order(snap_long$name,snap_long$snap_rm),]"
+"0","snap_long"
